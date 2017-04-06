@@ -22,6 +22,10 @@ class Bacon::Context
   end
 end
 
+RSpec.configure do |config|
+  config.include Rack::Test::Methods
+end
+
 require 'taps/config'
 Taps::Config.taps_database_url = "sqlite://#{Tempfile.new('test.db').path}"
 Sequel.connect(Taps::Config.taps_database_url)

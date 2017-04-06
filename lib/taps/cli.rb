@@ -54,6 +54,7 @@ class Cli
     opts = serveroptparse
     Taps.log.level = Logger::DEBUG if opts[:debug]
     Taps::Config.database_url = opts[:database_url]
+    Taps::Config.schema = opts[:schema]
     Taps::Config.login = opts[:login]
     Taps::Config.password = opts[:password]
 
@@ -85,12 +86,13 @@ EOHELP
   end
 
   def serveroptparse
-    opts={:port => 5000, :database_url => nil, :login => nil, :password => nil, :debug => false}
+    opts={:port => 5000, :database_url => nil, :login => nil, :password => nil, :debug => false, :schema => nil}
     OptionParser.new do |o|
       o.banner = "Usage: #{File.basename($0)} server [OPTIONS] <local_database_url> <login> <password>"
       o.define_head "Start a taps database import/export server"
 
       o.on("-p", "--port=N", "Server Port") { |v| opts[:port] = v.to_i if v.to_i > 0 }
+      o.on("-s", "--schema=S", "Schema Name") { |v| opts[:schema] = v }
       o.on("-d", "--debug", "Enable Debug Messages") { |v| opts[:debug] = true }
       o.parse!(argv)
 
@@ -118,7 +120,7 @@ EOHELP
   end
 
   def clientoptparse(cmd)
-    opts={:default_chunksize => 1000, :database_url => nil, :remote_url => nil, :debug => false, :resume_filename => nil, :disable_compresion => false, :indexes_first => false}
+    opts={:default_chunksize => 1000, :database_url => nil, :remote_url => nil, :debug => false, :resume_filename => nil, :disable_compresion => false, :indexes_first => false, :schema => nil}
     OptionParser.new do |o|
       o.banner = "Usage: #{File.basename($0)} #{cmd} [OPTIONS] <local_database_url> <remote_url>"
 
@@ -135,6 +137,7 @@ EOHELP
       o.on("-c", "--chunksize=N", "Initial Chunksize") { |v| opts[:default_chunksize] = (v.to_i < 10 ? 10 : v.to_i) }
       o.on("-g", "--disable-compression", "Disable Compression") { |v| opts[:disable_compression] = true }
       o.on("-f", "--filter=regex", "Regex Filter for tables") { |v| opts[:table_filter] = v }
+      o.on("-s", "--schema=S", "Schema Name") { |v| opts[:schema] = v }
       o.on("-t", "--tables=A,B,C", Array, "Shortcut to filter on a list of tables") do |v|
         r_tables = v.collect { |t| "^#{t}$" }.join("|")
         opts[:table_filter] = "(#{r_tables})"

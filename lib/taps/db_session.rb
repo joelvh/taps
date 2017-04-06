@@ -6,12 +6,14 @@ class DbSession < Sequel::Model
     primary_key :id
     text :key
     text :database_url
+    text :schema
     timestamp :started_at
     timestamp :last_access
   end
 
   def conn
     Sequel.connect(database_url) do |db|
+      db.run("SET search_path=#{schema}") if schema #not db-agnostic, making PG specific right now, we should make this db-agnostic
       yield db if block_given?
     end
   end

@@ -24,14 +24,14 @@ class Server < Sinatra::Base
       content_type "application/json"
       halt 412, ::OkJson.encode({ 'error_class' => e.class.to_s, 'error_message' => e.message, 'error_backtrace' => e.backtrace.join("\n") })
     else
-      "Taps Server Error: #{e}\n#{e.backtrace}"
-    end
+    "Taps Server Error: #{e}\n#{e.backtrace}"
+  end
   end
 
   before do
     unless request.path_info == '/health'
-      major, minor, patch = request.env['HTTP_TAPS_VERSION'].split('.') rescue []
-      unless "#{major}.#{minor}" == Taps.compatible_version
+    major, minor, patch = request.env['HTTP_TAPS_VERSION'].split('.') rescue []
+    unless "#{major}.#{minor}" == Taps.compatible_version
         halt 417, "Taps >= v#{Taps.compatible_version}.x is required for this server"
       end
     end
@@ -48,6 +48,7 @@ class Server < Sinatra::Base
 
   post '/sessions' do
     key = rand(9999999999).to_s
+    schema = Taps::Config.schema
 
     if ENV['NO_DEFAULT_DATABASE_URL']
       database_url = request.body.string
@@ -55,7 +56,7 @@ class Server < Sinatra::Base
       database_url = Taps::Config.database_url || request.body.string
     end
 
-    DbSession.create(:key => key, :database_url => database_url, :started_at => Time.now, :last_access => Time.now)
+    DbSession.create(:key => key, :database_url => database_url, :schema => schema, :started_at => Time.now, :last_access => Time.now)
 
     "/sessions/#{key}"
   end

@@ -13,4 +13,10 @@ describe Taps::Cli do
     opts = @cli.clientoptparse(:pull)
     opts[:exclude_tables].should == ['mytable1','logs']
   end
+
+  it "captures the schema in the options hash" do
+    @cli = Taps::Cli.new(["-s", "test", "sqlite://tmp.db", "http://x:y@localhost:5000"])
+    opts = @cli.clientoptparse(:pull)
+    opts[:schema].should == "testiez"
+  end
 end
